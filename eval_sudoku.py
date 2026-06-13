@@ -1,5 +1,7 @@
 import sys, os
 import torch
+
+device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 import torch.nn
 import torch.optim
 import tqdm
@@ -66,8 +68,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    torch.backends.cudnn.benchmark = True
-    torch.backends.cuda.enable_flash_sdp(enabled=True)
+    if device == "cuda":
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cuda.enable_flash_sdp(enabled=True)
 
     if args.limit_cores_used:
 
@@ -132,7 +135,7 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError
 
-    model = EMA(net).cuda()
+    model = EMA(net).to(device)
     model.load_state_dict(
         torch.load(args.model_path, weights_only=True)["model_state_dict"]
     )
@@ -159,9 +162,9 @@ if __name__ == "__main__":
                     _Y = Y[j : j + 1].repeat(minimum_chunk, 1, 1, 1)
                     _is_input = is_input[j : j + 1].repeat(minimum_chunk, 1, 1, 1)
                     _X, _Y, _is_input = (
-                        _X.to(torch.int32).cuda(),
-                        _Y.cuda(),
-                        _is_input.cuda(),
+                        _X.to(torch.int32).to(device),
+                        _Y.to(device),
+                        _is_input.to(device),
                     )
 
                     with torch.no_grad():
@@ -189,7 +192,7 @@ if __name__ == "__main__":
                 totals += board_correct_vote.numel()
             
         else:
-            X, Y, is_input = X.to(torch.int32).cuda(), Y.cuda(), is_input.cuda()
+            X, Y, is_input = X.to(torch.int32).to(device), Y.to(device), is_input.to(device)
             with torch.no_grad():
                 pred = model(X, is_input)
             num_blanks, num_corrects, board_correct = compute_board_accuracy(pred, Y, is_input)

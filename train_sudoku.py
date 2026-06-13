@@ -3,6 +3,8 @@ import sys, os
 import tqdm
 import argparse
 
+device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+
 from source.models.sudoku.transformer import SudokuTransformer
 
 from source.training_utils import save_checkpoint, save_model
@@ -82,8 +84,9 @@ if __name__ == "__main__":
 
     print("Exp name: ", args.exp_name)
 
-    torch.backends.cudnn.benchmark = True
-    torch.backends.cuda.enable_flash_sdp(enabled=True)
+    if device == "cuda":
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cuda.enable_flash_sdp(enabled=True)
     
     if args.seed is not None:
         import random
@@ -128,7 +131,7 @@ if __name__ == "__main__":
         correct_input = 0
         total_input = 0
         for X, Y, is_input in loader:
-            X, Y, is_input = X.to(torch.int32).cuda(), Y.cuda(), is_input.cuda()
+            X, Y, is_input = X.to(torch.int32).to(device), Y.to(device), is_input.to(device)
 
             with torch.no_grad():
                 out = net(X, is_input)
@@ -178,7 +181,7 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError
 
-    net.cuda()
+    net.to(device)
 
     total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
     print(f"Total number of parameters: {total_params}")
@@ -201,7 +204,7 @@ if __name__ == "__main__":
         for X, Y, is_input in tqdm.tqdm(trainloader):
             net.train()
             ema.train()
-            X, Y, is_input = X.to(torch.int32).cuda(), Y.cuda(), is_input.cuda()
+            X, Y, is_input = X.to(torch.int32).to(device), Y.to(device), is_input.to(device)
 
             if args.speed_test:
                 start = torch.cuda.Event(enable_timing=True)

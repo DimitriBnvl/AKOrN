@@ -1,1 +1,45 @@
 *.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# pyenv
+.python-version
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Trained model weights and checkpoints
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# TensorBoard logs
+runs/
+logs/
+
+# Data (potentially large or private datasets)
+data/sudoku/
+data/sudoku-rrn/
+data/clevrtex_full/
+data/clevrtex_outd/
+data/clevrtex_camo/
+data/tetrominoes/
+data/dsprites/
+data/clevr/
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Environment variables
+.env
