@@ -78,6 +78,7 @@ if __name__ == "__main__":
     parser.add_argument("--init_omg", type=float, default=0.1)
     parser.add_argument("--nl", type=str2bool, default=True)
 
+    parser.add_argument("--resume", action="store_true", help="resume from latest checkpoint")
     parser.add_argument("--speed_test", action="store_true")
 
     args = parser.parse_args()
@@ -190,6 +191,28 @@ if __name__ == "__main__":
 
     ema = EMA(net, beta=args.beta, update_every=10, update_after_step=100)
 
+    start_epoch = 0
+    if args.resume:
+        checkpoints = [
+            f for f in os.listdir(jobdir)
+            if f.startswith("checkpoint_") and f.endswith(".pth")
+        ]
+        if checkpoints:
+            checkpoints.sort(key=lambda f: int(f.split("_")[1].split(".")[0]))
+            latest = checkpoints[-1]
+            latest_epoch = int(latest.split("_")[1].split(".")[0])
+            ckpt = torch.load(os.path.join(jobdir, latest), map_location=device, weights_only=True)
+            net.load_state_dict(ckpt["model_state_dict"])
+            optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+            ema_path = os.path.join(jobdir, f"ema_{latest_epoch}.pth")
+            if os.path.exists(ema_path):
+                ema_ckpt = torch.load(ema_path, map_location=device, weights_only=True)
+                ema.load_state_dict(ema_ckpt["model_state_dict"])
+            start_epoch = latest_epoch + 1
+            print(f"Resumed from epoch {latest_epoch}, continuing from epoch {start_epoch}")
+        else:
+            print("No checkpoints found, starting from scratch")
+
     criterion = torch.nn.CrossEntropyLoss(reduction="none")
 
     # Measure speed
@@ -197,8 +220,8 @@ if __name__ == "__main__":
         it_sp = 0
         time_per_iter = []
         import numpy as np
-        
-    for epoch in range(args.epochs):
+
+    for epoch in range(start_epoch, args.epochs):
         total_loss = 0
 
         for X, Y, is_input in tqdm.tqdm(trainloader):
