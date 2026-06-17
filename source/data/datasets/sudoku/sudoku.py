@@ -21,7 +21,7 @@ def load_rrn_dataset(data_dir, split):
     split_to_filename = {"train": "train.csv", "val": "valid.csv", "test": "test.csv"}
 
     filename = osp.join(data_dir, split_to_filename[split])
-    df = pd.read_csv(filename, header=None)
+    df = pd.read_csv(filename, header=None, dtype=str)
 
     def str2onehot(x):
         x = np.array(list(map(int, x)), dtype="int64")
