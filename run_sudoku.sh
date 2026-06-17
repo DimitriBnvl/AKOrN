@@ -1,0 +1,1 @@
+python train_sudoku.py --exp_name=sudoku_akorn --eval_freq=10 --epochs=100 --model=akorn --lr=0.001 --T=16 --use_omega=True --global_omg=True --init_omg=0.5 --learn_omg=True --num_workers=0 --checkpoint_every=10
