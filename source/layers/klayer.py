@@ -26,9 +26,6 @@ class OmegaLayer(nn.Module):
         self.ch = ch
         self.global_omg = global_omg
 
-        if not learn_omg:
-            print("Not learning omega")
-
         if n % 2 != 0:
             # n is odd
             raise NotImplementedError

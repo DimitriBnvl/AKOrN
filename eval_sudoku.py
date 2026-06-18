@@ -1,15 +1,9 @@
-import sys, os
+import os
 import torch
 
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
-import torch.nn
-import torch.optim
 import tqdm
-import torchvision
-from torchvision import transforms
 import numpy as np
-from torch.optim.swa_utils import AveragedModel
-import matplotlib.pyplot as plt
 
 from source.data.datasets.sudoku.sudoku import SudokuDataset, HardSudokuDataset
 from source.models.sudoku.knet import SudokuAKOrN
