@@ -62,6 +62,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    SHARD  = int(os.environ.get("SHARD", 0))
+    NSHARD = int(os.environ.get("NSHARD", 1))
+
     if device == "cuda":
         torch.backends.cudnn.benchmark = True
         torch.backends.cuda.enable_flash_sdp(enabled=True)
@@ -145,6 +148,8 @@ if __name__ == "__main__":
     minimum_chunk = args.minimum_chunk if args.minimum_chunk is not None else K
 
     for i, (X, Y, is_input) in tqdm.tqdm(enumerate(loader)):
+        if NSHARD > 1 and (i % NSHARD) != SHARD:
+            continue
         B = X.shape[0]
         if args.model == 'akorn' and K > 1:  # Energy-based voting
             for j in range(B):
@@ -193,7 +198,5 @@ if __name__ == "__main__":
             corrects_vote += board_correct.sum().item()
             totals += board_correct.numel()
 
-    # Compute mean and standard deviation across networks
-    accuracy_vote = corrects_vote / totals
-
-    print(f"Vote accuracy: {accuracy_vote:.4f}")
+    accuracy_vote = corrects_vote / totals if totals else 0.0
+    print(f"shard={SHARD}/{NSHARD} corrects_vote={corrects_vote} totals={totals} acc={accuracy_vote:.4f}")
