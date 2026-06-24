@@ -62,9 +62,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    SHARD  = int(os.environ.get("SHARD", 0))
-    NSHARD = int(os.environ.get("NSHARD", 1))
-
     if device == "cuda":
         torch.backends.cudnn.benchmark = True
         torch.backends.cuda.enable_flash_sdp(enabled=True)
@@ -147,9 +144,15 @@ if __name__ == "__main__":
 
     minimum_chunk = args.minimum_chunk if args.minimum_chunk is not None else K
 
+    SHARD  = int(os.environ.get("SHARD",  0))
+    NSHARD = int(os.environ.get("NSHARD", 1))
+    MAXB   = int(os.environ.get("MAXB",   0))
+
     for i, (X, Y, is_input) in tqdm.tqdm(enumerate(loader)):
         if NSHARD > 1 and (i % NSHARD) != SHARD:
             continue
+        if MAXB and totals >= MAXB:
+            break
         B = X.shape[0]
         if args.model == 'akorn' and K > 1:  # Energy-based voting
             for j in range(B):
