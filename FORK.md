@@ -1,4 +1,4 @@
-# AKOrN – Fork Notes (dimitribonneville/akorn)
+# AKOrN – Fork Notes
 
 This is a personal fork of [autonomousvision/akorn](https://github.com/autonomousvision/akorn).
 The upstream repo is the canonical reference for the paper, model architecture, and CLEVRTex experiments.
