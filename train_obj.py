@@ -362,7 +362,9 @@ if __name__ == "__main__":
 
     scheduler = LinearWarmupScheduler(optimizer, warmup_iters=args.warmup_iters)
 
-    for epoch in range(0, args.epochs):
+    start_epoch = torch.load(args.finetune)["epoch"] + 1 if args.finetune else 0
+
+    for epoch in range(start_epoch, args.epochs):
         total_loss = train(net, ema, optimizer, scheduler, ssloader, epoch)
         if (epoch + 1) % args.checkpoint_every == 0:
             if accelerator.is_main_process:
@@ -372,6 +374,7 @@ if __name__ == "__main__":
                     epoch,
                     total_loss,
                     checkpoint_dir=jobdir,
+                    max_checkpoints=2,
                 )
                 save_model(ema, epoch, checkpoint_dir=jobdir, prefix="ema")
     if accelerator.is_main_process:
